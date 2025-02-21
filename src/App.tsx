@@ -1,9 +1,18 @@
-import { ErrorBoundary, Facet, SearchBox, SearchProvider, WithSearch, Results } from "@elastic/react-search-ui";
-import { Layout, Paging, PagingInfo, SingleLinksFacet } from "@elastic/react-search-ui-views";
+import {
+  ErrorBoundary,
+  Facet,
+  Paging,
+  PagingInfo,
+  Results,
+  SearchBox,
+  SearchProvider,
+  WithSearch,
+} from "@elastic/react-search-ui";
+import { Layout, SingleLinksFacet } from "@elastic/react-search-ui-views";
+import "@elastic/react-search-ui-views/lib/styles/styles.css";
 import { SearchDriverOptions } from "@elastic/search-ui";
 import ElasticsearchAPIConnector, { SearchRequest } from "@elastic/search-ui-elasticsearch-connector";
 import moment from "moment";
-// import "./App.css";
 import { Sport } from "./Sport";
 
 const connector = new ElasticsearchAPIConnector(
@@ -20,7 +29,7 @@ const connector = new ElasticsearchAPIConnector(
       multi_match: {
         query: `${requestState.searchTerm}`,
         fields: searchFields
-          ? Object.keys(searchFields).map((fieldName) => `${fieldName}^${searchFields[fieldName].weight || 1}`)
+          ? Object.keys(searchFields).map((fieldName): string => `${fieldName}^${searchFields[fieldName].weight || 1}`)
           : undefined,
         fuzziness: "AUTO",
         prefix_length: 2,
@@ -57,11 +66,11 @@ const config: SearchDriverOptions = {
       popularity: {
         type: "range",
         ranges: [
-          { from: 1, name: "★☆☆☆☆ & Up" },
-          { from: 2, name: "★★☆☆☆ & Up" },
-          { from: 3, name: "★★★☆☆ & Up" },
-          { from: 4, name: "★★★★☆ & Up" },
-          { from: 5, name: "★★★★★" },
+          { from: 1, name: "❶ & More" },
+          { from: 2, name: "❷ & More" },
+          { from: 3, name: "❸ & More" },
+          { from: 4, name: "❹ & More" },
+          { from: 5, name: "❺ (Max)" },
         ],
       },
       event_date: {
@@ -72,8 +81,8 @@ const config: SearchDriverOptions = {
             name: "Within the last 30 years",
           },
           {
-            from: moment().subtract(30, "years").toISOString(),
-            to: moment().subtract(70, "years").toISOString(),
+            from: moment().subtract(70, "years").toISOString(),
+            to: moment().subtract(30, "years").toISOString(),
             name: "30 - 70 years ago",
           },
           {
@@ -112,12 +121,8 @@ function App(): JSX.Element {
 
   return (
     <SearchProvider config={config}>
-      <WithSearch
-        mapContextToProps={({ result, setPage }) => ({
-          result,
-          setPage,
-        })}>
-        {({ setPage }): JSX.Element => {
+      <WithSearch mapContextToProps={({ results }) => ({ results })}>
+        {({ results }): JSX.Element => {
           return (
             <div className="App">
               <ErrorBoundary>
@@ -139,7 +144,7 @@ function App(): JSX.Element {
                   }
                   sideContent={
                     <div>
-                      <Facet field="popularity" label="Popularity" view={SingleLinksFacet} />
+                      <Facet field="popularity" label="Popularity (from 1 to 5)" view={SingleLinksFacet} />
                       <Facet field="event_date" label="Date" isFilterable={true} filterType="any" />
                       <div className="sui-facet">
                         <legend className="sui-facet__title">Add Sport</legend>
@@ -228,8 +233,8 @@ function App(): JSX.Element {
                       shouldTrackClickThrough={true}
                     />
                   }
-                  bodyHeader={<PagingInfo start={1} end={1} searchTerm={""} totalResults={1} />}
-                  bodyFooter={<Paging totalPages={1} onChange={setPage} />}
+                  bodyHeader={<PagingInfo />}
+                  bodyFooter={<Paging />}
                 />
               </ErrorBoundary>
             </div>
