@@ -152,19 +152,19 @@ function App(): JSX.Element {
                           <input
                             className="sui-facet-search__text-input"
                             type="date"
-                            onChange={(evt): string => (sport.event_date = `${evt.target.value}`)}
+                            onChange={(e): string => (sport.event_date = `${e.target.value}`)}
                           />
                           <input
                             className="sui-facet-search__text-input"
                             type="text"
                             placeholder="Title"
-                            onChange={(evt): string => (sport.title = evt.target.value)}
+                            onChange={(e): string => (sport.title = e.target.value)}
                           />
                           <input
                             className="sui-facet-search__text-input"
                             type="text"
                             placeholder="Sport Type"
-                            onChange={(evt): string[] => (sport.sport_type = evt.target.value.split(", "))}
+                            onChange={(e): string[] => (sport.sport_type = e.target.value.split(", "))}
                           />
                           <input
                             className="sui-facet-search__text-input"
@@ -172,7 +172,7 @@ function App(): JSX.Element {
                             max="5"
                             min="0"
                             placeholder="Rate"
-                            onChange={(evt): number => (sport.popularity = Number(evt.target.value))}
+                            onChange={(e): number => (sport.popularity = Number(e.target.value))}
                           />
                           <button
                             onClick={async (): Promise<void> => {
