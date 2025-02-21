@@ -1,10 +1,9 @@
-import { ErrorBoundary, Facet, SearchBox, SearchProvider, WithSearch } from "@elastic/react-search-ui";
-import { Layout, Paging, PagingInfo, Results, SingleLinksFacet } from "@elastic/react-search-ui-views";
+import { ErrorBoundary, Facet, SearchBox, SearchProvider, WithSearch, Results } from "@elastic/react-search-ui";
+import { Layout, Paging, PagingInfo, SingleLinksFacet } from "@elastic/react-search-ui-views";
 import { SearchDriverOptions } from "@elastic/search-ui";
 import ElasticsearchAPIConnector, { SearchRequest } from "@elastic/search-ui-elasticsearch-connector";
 import moment from "moment";
 // import "./App.css";
-import { ResultData } from "./ResultData";
 import { Sport } from "./Sport";
 
 const connector = new ElasticsearchAPIConnector(
@@ -39,7 +38,7 @@ const config: SearchDriverOptions = {
   searchQuery: {
     search_fields: {
       title: {},
-      categories: {},
+      sport_type: {},
     },
     result_fields: {
       title: {
@@ -190,7 +189,7 @@ function App(): JSX.Element {
                   bodyContent={
                     <Results
                       titleField="title"
-                      resultView={({ result }: { result: ResultData }): JSX.Element => (
+                      resultView={({ result }): JSX.Element => (
                         <li className="sui-result">
                           <div className="sui-result__header">
                             <h3>
@@ -208,9 +207,9 @@ function App(): JSX.Element {
                                 {result.event_date.raw}
                                 <br />
                                 {"Popularity Score: "}
-                                {result.popularity_score.raw}
+                                {result.popularity.raw}
                                 <br />
-                                {result.categories.raw.join(", ")}
+                                {result.sport_type.raw.join(", ")}
                                 <br />
                                 <button
                                   onClick={async (): Promise<void> => {
@@ -229,8 +228,8 @@ function App(): JSX.Element {
                       shouldTrackClickThrough={true}
                     />
                   }
-                  bodyHeader={<PagingInfo start={0} end={0} searchTerm={""} totalResults={0} />}
-                  bodyFooter={<Paging totalPages={0} onChange={setPage} />}
+                  bodyHeader={<PagingInfo start={1} end={1} searchTerm={""} totalResults={1} />}
+                  bodyFooter={<Paging totalPages={1} onChange={setPage} />}
                 />
               </ErrorBoundary>
             </div>
