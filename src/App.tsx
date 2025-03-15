@@ -9,7 +9,7 @@ import { Sport } from "./Sport";
 const connector = new ElasticsearchAPIConnector(
   {
     host: "http://localhost:9200",
-    index: "sports",
+    index: "sports_4lab",
   },
   (requestBody, requestState, queryConfig): SearchRequest => {
     if (!requestState.searchTerm) return requestBody;
@@ -70,6 +70,9 @@ const config: SearchDriverOptions = {
       event_date: {},
       popularity: {},
       sport_type: {},
+      description: {},
+      content: {},
+      snippet: {},
     },
     disjunctiveFacets: ["event_date"],
     facets: {
@@ -184,19 +187,19 @@ function App(): JSX.Element {
                             className="sui-facet-search__text-input"
                             type="text"
                             placeholder="Description"
-                            onChange={(evt) => (sport.description = evt.target.value)}
+                            onChange={(e) => (sport.description = e.target.value)}
                           />
                           <input
                             className="sui-facet-search__text-input"
                             type="text"
                             placeholder="Content"
-                            onChange={(evt) => (sport.content = evt.target.value)}
+                            onChange={(e) => (sport.content = e.target.value)}
                           />
                           <input
                             className="sui-facet-search__text-input"
                             type="text"
                             placeholder="Snippet"
-                            onChange={(evt) => (sport.snippet = evt.target.value)}
+                            onChange={(e) => (sport.snippet = e.target.value)}
                           />
                           <input
                             className="sui-facet-search__text-input"
@@ -208,7 +211,7 @@ function App(): JSX.Element {
                           />
                           <button
                             onClick={async (): Promise<void> => {
-                              await fetch("http://localhost:9200/sports/_doc", {
+                              await fetch("http://localhost:9200/sports_4lab/_doc", {
                                 method: "POST",
                                 headers: {
                                   "Content-Type": "application/json",
@@ -232,7 +235,7 @@ function App(): JSX.Element {
                             <h3>
                               <a
                                 dangerouslySetInnerHTML={{
-                                  __html: result.title.raw,
+                                  __html: result.title?.raw || "No title",
                                 }}
                                 target="_blank"
                               />
@@ -241,24 +244,27 @@ function App(): JSX.Element {
                           <div className="sui-result__body">
                             <div className="sui-result__details">
                               <div>
-                                {result.event_date.raw}
+                                {result.event_date?.raw || "No date"}
                                 <br />
                                 {"Popularity Score: "}
-                                {result.popularity.raw}
+                                {result.popularity?.raw || "N/A"}
                                 <br />
-                                {result.sport_type.raw.join(", ")}
+                                {result.sport_type?.raw?.join(", ") || "No sport type"}
                                 <br />
-                                {`description:=${result.description.raw}`}
+                                {`description:=${result.description?.raw || "No description"}`}
                                 <br />
-                                {`content:=${result.content.raw}`}
+                                {`content:=${result.content?.raw || "No content"}`}
                                 <br />
-                                {`snippet:=${result.snippet.raw}`}
+                                {`snippet:=${result.snippet?.raw || "No snippet"}`}
+                                <br />
                                 <button
                                   onClick={async (): Promise<void> => {
-                                    await fetch("http://localhost:9200/sports/_doc/" + result.id.raw, {
-                                      method: "DELETE",
-                                    });
-                                    window.location.reload();
+                                    if (result.id?.raw) {
+                                      await fetch(`http://localhost:9200/sports_4lab/_doc/${result.id.raw}`, {
+                                        method: "DELETE",
+                                      });
+                                      window.location.reload();
+                                    }
                                   }}>
                                   Delete
                                 </button>
