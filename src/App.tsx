@@ -1,13 +1,4 @@
-import {
-  ErrorBoundary,
-  Facet,
-  Paging,
-  PagingInfo,
-  Results,
-  SearchBox,
-  SearchProvider,
-  WithSearch,
-} from "@elastic/react-search-ui";
+import { ErrorBoundary, Facet, Paging, PagingInfo, Results, SearchBox, SearchProvider, WithSearch } from "@elastic/react-search-ui";
 import { Layout, SingleLinksFacet } from "@elastic/react-search-ui-views";
 import "@elastic/react-search-ui-views/lib/styles/styles.css";
 import { SearchDriverOptions } from "@elastic/search-ui";
@@ -18,23 +9,43 @@ import { Sport } from "./Sport";
 const connector = new ElasticsearchAPIConnector(
   {
     host: "http://localhost:9200",
-    index: "sports",
+    index: "sports_4lab",
   },
   (requestBody, requestState, queryConfig): SearchRequest => {
     if (!requestState.searchTerm) return requestBody;
 
-    const searchFields = queryConfig.search_fields;
+    if (requestState.searchTerm.startsWith("d=")) {
+      requestBody.query = {
+        match: {
+          description: requestState.searchTerm.replace("d=", ""),
+        },
+      };
+    } else if (requestState.searchTerm.startsWith("c=")) {
+      requestBody.query = {
+        match: {
+          content: requestState.searchTerm.replace("c=", ""),
+        },
+      };
+    } else if (requestState.searchTerm.startsWith("s=")) {
+      requestBody.query = {
+        match: {
+          snippet: requestState.searchTerm.replace("s=", ""),
+        },
+      };
+    } else {
+      const searchFields = queryConfig.search_fields;
 
-    requestBody.query = {
-      multi_match: {
-        query: `${requestState.searchTerm}`,
-        fields: searchFields
-          ? Object.keys(searchFields).map((fieldName): string => `${fieldName}^${searchFields[fieldName].weight || 1}`)
-          : undefined,
-        fuzziness: "AUTO",
-        prefix_length: 2,
-      },
-    };
+      requestBody.query = {
+        multi_match: {
+          query: `${requestState.searchTerm}`,
+          fields: searchFields
+            ? Object.keys(searchFields).map((fieldName): string => `${fieldName}^${searchFields[fieldName].weight || 1}`)
+            : undefined,
+          fuzziness: "AUTO",
+          prefix_length: 2,
+        },
+      };
+    }
     return requestBody;
   }
 );
@@ -59,6 +70,9 @@ const config: SearchDriverOptions = {
       event_date: {},
       popularity: {},
       sport_type: {},
+      description: {},
+      content: {},
+      snippet: {},
     },
     disjunctiveFacets: ["event_date"],
     facets: {
@@ -117,6 +131,9 @@ function App(): JSX.Element {
     event_date: "",
     popularity: 0,
     sport_type: [],
+    description: "",
+    content: "",
+    snippet: "",
   };
 
   return (
@@ -150,24 +167,42 @@ function App(): JSX.Element {
                         <legend className="sui-facet__title">Add Sport</legend>
                         <div className="sui-facet-search">
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="date"
                             onChange={(e): string => (sport.event_date = `${e.target.value}`)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Title"
                             onChange={(e): string => (sport.title = e.target.value)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Sport Type"
                             onChange={(e): string[] => (sport.sport_type = e.target.value.split(", "))}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
+                            type="text"
+                            placeholder="Description"
+                            onChange={(e) => (sport.description = e.target.value)}
+                          />
+                          <input
+                            className="search__text-input"
+                            type="text"
+                            placeholder="Content"
+                            onChange={(e) => (sport.content = e.target.value)}
+                          />
+                          <input
+                            className="search__text-input"
+                            type="text"
+                            placeholder="Snippet"
+                            onChange={(e) => (sport.snippet = e.target.value)}
+                          />
+                          <input
+                            className="search__text-input"
                             type="number"
                             max="5"
                             min="0"
@@ -176,7 +211,7 @@ function App(): JSX.Element {
                           />
                           <button
                             onClick={async (): Promise<void> => {
-                              await fetch("http://localhost:9200/sports/_doc", {
+                              await fetch("http://localhost:9200/sports_4lab/_doc", {
                                 method: "POST",
                                 headers: {
                                   "Content-Type": "application/json",
@@ -200,28 +235,36 @@ function App(): JSX.Element {
                             <h3>
                               <a
                                 dangerouslySetInnerHTML={{
-                                  __html: result.title.raw,
+                                  __html: result.title?.raw || "No title",
                                 }}
                                 target="_blank"
                               />
                             </h3>
                           </div>
                           <div className="sui-result__body">
-                            <div className="sui-result__details">
+                            <div className="sui-result__details text-custom">
                               <div>
-                                {result.event_date.raw}
+                                {result.event_date?.raw || "No date"}
                                 <br />
                                 {"Popularity Score: "}
-                                {result.popularity.raw}
+                                {result.popularity?.raw || "N/A"}
                                 <br />
-                                {result.sport_type.raw.join(", ")}
+                                {result.sport_type?.raw?.join(", ") || "No sport type"}
+                                <br />
+                                {`Description: ${result.description?.raw || "No description"}`}
+                                <br />
+                                {`Content: ${result.content?.raw || "No content"}`}
+                                <br />
+                                {`Snippet: ${result.snippet?.raw || "No snippet"}`}
                                 <br />
                                 <button
                                   onClick={async (): Promise<void> => {
-                                    await fetch("http://localhost:9200/sports/_doc/" + result.id.raw, {
-                                      method: "DELETE",
-                                    });
-                                    window.location.reload();
+                                    if (result.id?.raw) {
+                                      await fetch(`http://localhost:9200/sports_4lab/_doc/${result.id.raw}`, {
+                                        method: "DELETE",
+                                      });
+                                      window.location.reload();
+                                    }
                                   }}>
                                   Delete
                                 </button>

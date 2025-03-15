@@ -23,3 +23,18 @@ button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
+
+.text-custom {
+  text-align: justify;
+}
+
+.search__text-input {
+  margin-top: 0.3em;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  font-family: inherit;
+  border: 1px solid #cccccc;
+  border-radius: 4px;
+  outline: none;
+}
