@@ -14,22 +14,22 @@ const connector = new ElasticsearchAPIConnector(
   (requestBody, requestState, queryConfig): SearchRequest => {
     if (!requestState.searchTerm) return requestBody;
 
-    if (requestState.searchTerm.startsWith("description:=")) {
+    if (requestState.searchTerm.startsWith("d=")) {
       requestBody.query = {
         match: {
-          description: requestState.searchTerm.replace("description:=", ""),
+          description: requestState.searchTerm.replace("d=", ""),
         },
       };
-    } else if (requestState.searchTerm.startsWith("content:=")) {
+    } else if (requestState.searchTerm.startsWith("c=")) {
       requestBody.query = {
         match: {
-          content: requestState.searchTerm.replace("content:=", ""),
+          content: requestState.searchTerm.replace("c=", ""),
         },
       };
-    } else if (requestState.searchTerm.startsWith("snippet:=")) {
+    } else if (requestState.searchTerm.startsWith("s=")) {
       requestBody.query = {
         match: {
-          snippet: requestState.searchTerm.replace("snippet:=", ""),
+          snippet: requestState.searchTerm.replace("s=", ""),
         },
       };
     } else {
@@ -167,42 +167,42 @@ function App(): JSX.Element {
                         <legend className="sui-facet__title">Add Sport</legend>
                         <div className="sui-facet-search">
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="date"
                             onChange={(e): string => (sport.event_date = `${e.target.value}`)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Title"
                             onChange={(e): string => (sport.title = e.target.value)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Sport Type"
                             onChange={(e): string[] => (sport.sport_type = e.target.value.split(", "))}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Description"
                             onChange={(e) => (sport.description = e.target.value)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Content"
                             onChange={(e) => (sport.content = e.target.value)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="text"
                             placeholder="Snippet"
                             onChange={(e) => (sport.snippet = e.target.value)}
                           />
                           <input
-                            className="sui-facet-search__text-input"
+                            className="search__text-input"
                             type="number"
                             max="5"
                             min="0"
@@ -242,7 +242,7 @@ function App(): JSX.Element {
                             </h3>
                           </div>
                           <div className="sui-result__body">
-                            <div className="sui-result__details">
+                            <div className="sui-result__details text-custom">
                               <div>
                                 {result.event_date?.raw || "No date"}
                                 <br />
@@ -251,11 +251,11 @@ function App(): JSX.Element {
                                 <br />
                                 {result.sport_type?.raw?.join(", ") || "No sport type"}
                                 <br />
-                                {`description:=${result.description?.raw || "No description"}`}
+                                {`Description: ${result.description?.raw || "No description"}`}
                                 <br />
-                                {`content:=${result.content?.raw || "No content"}`}
+                                {`Content: ${result.content?.raw || "No content"}`}
                                 <br />
-                                {`snippet:=${result.snippet?.raw || "No snippet"}`}
+                                {`Snippet: ${result.snippet?.raw || "No snippet"}`}
                                 <br />
                                 <button
                                   onClick={async (): Promise<void> => {
