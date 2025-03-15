@@ -1,13 +1,4 @@
-import {
-  ErrorBoundary,
-  Facet,
-  Paging,
-  PagingInfo,
-  Results,
-  SearchBox,
-  SearchProvider,
-  WithSearch,
-} from "@elastic/react-search-ui";
+import { ErrorBoundary, Facet, Paging, PagingInfo, Results, SearchBox, SearchProvider, WithSearch } from "@elastic/react-search-ui";
 import { Layout, SingleLinksFacet } from "@elastic/react-search-ui-views";
 import "@elastic/react-search-ui-views/lib/styles/styles.css";
 import { SearchDriverOptions } from "@elastic/search-ui";
@@ -23,18 +14,38 @@ const connector = new ElasticsearchAPIConnector(
   (requestBody, requestState, queryConfig): SearchRequest => {
     if (!requestState.searchTerm) return requestBody;
 
-    const searchFields = queryConfig.search_fields;
+    if (requestState.searchTerm.startsWith("description:=")) {
+      requestBody.query = {
+        match: {
+          description: requestState.searchTerm.replace("description:=", ""),
+        },
+      };
+    } else if (requestState.searchTerm.startsWith("content:=")) {
+      requestBody.query = {
+        match: {
+          content: requestState.searchTerm.replace("content:=", ""),
+        },
+      };
+    } else if (requestState.searchTerm.startsWith("snippet:=")) {
+      requestBody.query = {
+        match: {
+          snippet: requestState.searchTerm.replace("snippet:=", ""),
+        },
+      };
+    } else {
+      const searchFields = queryConfig.search_fields;
 
-    requestBody.query = {
-      multi_match: {
-        query: `${requestState.searchTerm}`,
-        fields: searchFields
-          ? Object.keys(searchFields).map((fieldName): string => `${fieldName}^${searchFields[fieldName].weight || 1}`)
-          : undefined,
-        fuzziness: "AUTO",
-        prefix_length: 2,
-      },
-    };
+      requestBody.query = {
+        multi_match: {
+          query: `${requestState.searchTerm}`,
+          fields: searchFields
+            ? Object.keys(searchFields).map((fieldName): string => `${fieldName}^${searchFields[fieldName].weight || 1}`)
+            : undefined,
+          fuzziness: "AUTO",
+          prefix_length: 2,
+        },
+      };
+    }
     return requestBody;
   }
 );
@@ -117,6 +128,9 @@ function App(): JSX.Element {
     event_date: "",
     popularity: 0,
     sport_type: [],
+    description: "",
+    content: "",
+    snippet: "",
   };
 
   return (
@@ -168,6 +182,24 @@ function App(): JSX.Element {
                           />
                           <input
                             className="sui-facet-search__text-input"
+                            type="text"
+                            placeholder="Description"
+                            onChange={(evt) => (sport.description = evt.target.value)}
+                          />
+                          <input
+                            className="sui-facet-search__text-input"
+                            type="text"
+                            placeholder="Content"
+                            onChange={(evt) => (sport.content = evt.target.value)}
+                          />
+                          <input
+                            className="sui-facet-search__text-input"
+                            type="text"
+                            placeholder="Snippet"
+                            onChange={(evt) => (sport.snippet = evt.target.value)}
+                          />
+                          <input
+                            className="sui-facet-search__text-input"
                             type="number"
                             max="5"
                             min="0"
@@ -216,6 +248,11 @@ function App(): JSX.Element {
                                 <br />
                                 {result.sport_type.raw.join(", ")}
                                 <br />
+                                {`description:=${result.description.raw}`}
+                                <br />
+                                {`content:=${result.content.raw}`}
+                                <br />
+                                {`snippet:=${result.snippet.raw}`}
                                 <button
                                   onClick={async (): Promise<void> => {
                                     await fetch("http://localhost:9200/sports/_doc/" + result.id.raw, {
